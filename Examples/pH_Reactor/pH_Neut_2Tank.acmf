@@ -1,0 +1,1808 @@
+Version "25.0-0";
+Libraries "Modeler.acml", "SystemLibrary.acml";
+Port Material
+/*
+  2-Component Isothermal Van-de-Vusse Reactor Model
+
+  This toy problem will serve as a nonlinear test example for pH Neutralization Reactor RM-Builder
+
+  Priyadarshi Mahapatra and Jinliang Ma
+  URS Corporation / National Energy Technology Laboratory
+  2 April 2013
+*/
+F           as flow_vol       (description:"Volumetric Flowrate"); // [m^3/hr]
+Ca          as conc_mole      (description:"Concentration of A"); // [kmol/m^3]
+Cb          as conc_mole      (description:"Concentration of B"); // [kmol/m^3]
+End
+Model pH_Reactor
+// <parameter name> as <parameter type> (<default>, description:"<description>");
+// <variable name>  as <variable type> (default, <spec>, description:"<description>");
+// <submodel name>  as <model type> (<submodel variable> = <variable name>,...);
+// <structure name> as external <structure type>("<default instance>");
+// <port name>      as <Input or Output> <port type>;
+// <equation_name> : <expression1> = <expression2>;
+// Call (<output argument list>) = <procedure name>(<input argument list>);
+
+// Parameters
+A           as area             (description:"Cross-Sectional Area of Reactor"); // [m^2]
+cv          as notype           (description:"Exit Flow Coefficient"); // [m^2.5/hr]
+Ka          as hidden constant         (fixed, 1.8e-5);
+Kw          as hidden constant         (fixed, 1e-14);
+
+// Variables
+V           as volume           (description:"Reactor Volume"); // [m^3]
+h           as length           (description:"Reactor Height"); // [m]
+alpha       as conc_mole        (description:"Concentration of A in Reactor"); // [kmol/m^3]
+beta        as conc_mole        (description:"Concentration of B in Reactor"); // [kmol/m^3]
+HAC_log     as hidden negative;
+ACm_log     as hidden negative;
+OHm_log     as hidden negative;
+Hp_log      as hidden negative;
+pH          as positive         (description:"pH in the Reactor");
+
+// Model Ports
+Feed0       as Input Material   (description:"Feed Stream 0"); // [m^3/hr]
+Feed1       as Input Material   (description:"Feed Stream 1"); // [m^3/hr]
+Feed2       as Input Material   (description:"Feed Stream 2"); // [m^3/hr]
+Feed3       as Input Material   (description:"Feed Stream 3"); // [m^3/hr]
+Prod        as Output Material  (description:"Product Stream"); // [m^3/hr]
+
+V = h*A;
+
+// Total Mass Balance
+$h = (Feed0.F + Feed1.F + Feed2.F + Feed3.F - Prod.F)/A;
+
+// Component Mass Balance
+$alpha = (Feed0.F*Feed0.Ca + Feed1.F*Feed1.Ca + Feed2.F*Feed2.Ca + Feed3.F*Feed3.Ca - Prod.F*alpha)/V;
+$beta = (Feed0.F*Feed0.Cb + Feed1.F*Feed1.Cb + Feed2.F*Feed2.Cb + Feed3.F*Feed3.Cb - Prod.F*beta)/V;
+
+// Product Specifications
+Prod.F = cv*sqrt(h);
+Prod.Ca = alpha;
+Prod.Cb = beta;
+
+// Algebraic Correlations
+alpha = 10^HAC_log + 10^ACm_log;
+beta = 10^ACm_log + 10^OHm_log - 10^Hp_log;
+Hp_log + OHm_log = log10(Kw);
+ACm_log + Hp_log = log10(Ka) + HAC_log;
+pH = -Hp_log;
+
+//SYSTEM SECTION - WARNING: DO NOT EDIT
+  Current_Icon : "System";
+SystemData : Text
+<FORMLIST DEFAULTFORM="AllVariables">
+</FORMLIST>
+EndText;
+
+//SYSTEM SECTION END
+End
+Stream pH_Stream
+// <parameter name> as <parameter type> (<default value>, description:"<description>");
+// <variable name>  as <variable type> (<default value>, <default spec>, description:"<description>";
+// <submodel name>  as <model type> (<submodel variable> = <variable name>,...);
+// <structure name> as external <structure type>("<default instance>");
+// In_F           as Input  <port type>;
+// Out_P      as Output <port type>;
+// <equation_name> : <expression1> = <expression2>;
+// Call (<output arguments>) = <procedure name>(<input arguments>);
+
+// Parameters
+Ka          as hidden constant         (fixed, 1.8e-5);
+Kw          as hidden constant         (fixed, 1e-14);
+
+// Variables
+HAC_log     as hidden negative;
+ACm_log     as hidden negative;
+OHm_log     as hidden negative;
+Hp_log      as hidden negative;
+pH          as positive         (description:"pH in the Reactor");
+
+F           as flow_vol       (description:"Volumetric Flowrate"); // [m^3/hr]
+Ca          as conc_mole      (description:"Concentration of A"); // [kmol/m^3]
+Cb          as conc_mole      (description:"Concentration of B"); // [kmol/m^3]
+
+// Ports
+In_F        as Input  Material;
+Out_P       as Output Material;
+
+F = In_F.F;
+Ca = In_F.Ca;
+Cb = In_F.Cb;
+
+Out_P.F = F;
+Out_P.Ca = Ca;
+Out_P.Cb = Cb;
+
+// Algebraic Correlations
+Ca = 10^HAC_log + 10^ACm_log;
+Cb = 10^ACm_log + 10^OHm_log - 10^Hp_log;
+Hp_log + OHm_log = log10(Kw);
+ACm_log + Hp_log = log10(Ka) + HAC_log;
+pH = -Hp_log;
+
+//SYSTEM SECTION - WARNING: DO NOT EDIT
+  Current_Icon : "System";
+SystemData : Text
+<FORMLIST DEFAULTFORM="AllVariables">
+</FORMLIST>
+EndText;
+ LineStyle: Text {
+Version    : 1
+PenStyle   : 983041
+Width      : 0
+BrushStyle : 0
+BrushColor : 0
+BrushHatch : 0
+ArrowType  : 0
+HideLabels : 0
+ } 
+
+EndText;
+
+//SYSTEM SECTION END
+End
+SystemData : Text
+globaldatasection
+EndText;
+SystemData : Text
+<FORMLIST DEFAULTFORM="AllGlobals">
+  <FORM NAME="AllGlobals" CLSID="{6BA76840-806B-11D0-BE51-0000C09984EF}">
+    { Version : 1
+SizeX : 5250
+SizeY : 3750
+ShowAllVariables : True
+ShowAllAttributes : False
+ExpandAll : True
+ShowRegistryAttributes : True
+VariablesPaths : [ ]
+AttributesPaths : [ ]
+ColumnWidths : [ ]
+}
+  </FORM>
+</FORMLIST>
+EndText;
+
+FLOWSHEET
+  pH_Tank1 as pH_Reactor;
+  pH_Tank2 as pH_Reactor;
+  Q1 as pH_Stream;
+  Q2 as pH_Stream;
+  Q3 as pH_Stream;
+  Q4 as pH_Stream;
+  Q5 as pH_Stream;
+  Q6 as pH_Stream;
+  Q7 as pH_Stream;
+  Q8 as pH_Stream;
+  Connect pH_Tank1.Feed1 with Q1;
+  Connect pH_Tank1.Feed2 with Q2;
+  Connect pH_Tank1.Feed3 with Q3;
+  Connect pH_Tank1.Prod and pH_Tank2.Feed0 with Q4;
+  Connect pH_Tank2.Feed1 with Q5;
+  Connect pH_Tank2.Feed2 with Q6;
+  Connect pH_Tank2.Feed3 with Q7;
+  Connect pH_Tank2.Prod with Q8;
+
+CONSTRAINTS
+  // Flowsheet variables and equations...
+END
+
+//SYSTEM SECTION - WARNING: DO NOT EDIT
+SystemData : Text
+<FORMLIST DEFAULTFORM="AllVariables">
+  <FORM NAME="Conc_Outlet" CLSID="{F6AD2450-A109-11D0-8B2F-00A024E1AC0C}">
+    { Version : 2
+SizeX : 12225
+SizeY : 6555
+Plot3d: 0
+YAxisIsTime: 1
+MaxIntervals: 3
+PhasePlot: 0
+PhaseXVariable: -
+XProfileName: -
+YProfileName: -
+VariablesPaths : [ 12 VdVR.Prod.Ca 12 VdVR.Prod.Cb ]
+HistoryVariablesPaths : [ 12 VdVR.Prod.Ca 12 VdVR.Prod.Cb ]
+ProfileNames : [ ]
+UnusedVariablesPaths : [ ]
+UnusedProfileDimensions : [ ]
+PlotInputFile : { 
+Type:0
+Title:Outlet Concentrations
+Xlab:Time $UOM
+Ylab:Y Label
+Nvars:2
+MultiY:1
+Subst:UOM
+NYaxes:2
+RunPlot:1
+PhasePlot:0
+SizeToData:0
+CommunicationIntervals:1
+UseVar:1
+IgnoreLegend:0
+TimeWin:0.27
+TimeScroll:0.054
+AlwaysShow:0
+PhaseX:
+Var:0
+AxisMap:0
+Label:Time $UOM
+SubstValue:Hours
+Var:1
+AxisMap:1
+Label:Y Label
+Legend:VdVR.Prod.Ca $UOM
+SubstValue:kmol/m3
+Var:2
+AxisMap:2
+Label:
+Legend:VdVR.Prod.Cb $UOM
+SubstValue:kmol/m3
+Axis:0
+ARange:0 0 0 0.264 0 0.27
+ARange3:0 0.27 0 0.27 0.01 0.01 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:1
+ARange:3.08173 3.08173 2.75 3.45 2.75 3.4
+ARange3:2.75 3.45 2.75 3.45 0.05 0.05 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:2
+ARange:1.13299 2.45652 1.1 2.5 1.13299 2.45652
+ARange3:1.1 2.5 1.1 2.5 0.1 0.1 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Attrib:0 4 1 1
+Attrib2:0 0 0 0 0
+Attrib:1 4 2 2
+Attrib2:1 0 0 0 0
+Font:0 10 0:Arial
+Font:1 10 0:Arial
+Font:2 10 0:Arial
+Font:3 10 0:Arial
+Grid:3
+Line:0
+Square:0 0 0 0
+Marker:4 10
+LegendBox:0 1.000000 0.030000
+LegendBox2:90 1.250000 5 } 
+DisplayAs : Plot
+ColumnWidths : [ 585 1335 1335 ]
+ProfileDimensions : [ ]
+}
+  </FORM>
+  <FORM NAME="plot_results" CLSID="{F6AD2450-A109-11D0-8B2F-00A024E1AC0C}">
+    { Version : 2
+SizeX : 7725
+SizeY : 6750
+Plot3d: 0
+YAxisIsTime: 1
+MaxIntervals: 3
+PhasePlot: 0
+PhaseXVariable: -
+XProfileName: -
+YProfileName: -
+VariablesPaths : [ ]
+HistoryVariablesPaths : [ ]
+ProfileNames : [ ]
+UnusedVariablesPaths : [ ]
+UnusedProfileDimensions : [ ]
+PlotInputFile : { 
+Type:0
+Title:plot_results
+Xlab:Time $UOM
+Ylab:Y Label
+Nvars:1
+MultiY:1
+Subst:UOM
+NYaxes:1
+RunPlot:1
+PhasePlot:0
+SizeToData:0
+CommunicationIntervals:1
+UseVar:1
+IgnoreLegend:0
+TimeWin:10
+TimeScroll:2
+AlwaysShow:0
+PhaseX:
+Var:0
+AxisMap:0
+Label:Time $UOM
+SubstValue:Hours
+Var:1
+AxisMap:1
+Label:Y Label
+Legend:Y label
+SubstValue:
+Axis:0
+ARange:0 0 0 10 0 10
+ARange3:0 10 0 10 1 1 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:1
+ARange:0 1 0 1 0 1
+ARange3:0 1 0 1 0.25 0.25 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Attrib:0 4 1 1
+Attrib2:0 0 0 0 0
+Font:0 10 0:Arial
+Font:1 10 0:Arial
+Font:2 10 0:Arial
+Font:3 10 0:Arial
+Grid:0
+Line:0
+Square:0 0 0 0
+Marker:4 10
+LegendBox:0 1.000000 0.030000
+LegendBox2:90 1.250000 5 } 
+DisplayAs : Plot
+ColumnWidths : [ ]
+ProfileDimensions : [ ]
+}
+  </FORM>
+  <FORM NAME="plot" CLSID="{F6AD2450-A109-11D0-8B2F-00A024E1AC0C}">
+    { Version : 2
+SizeX : 5250
+SizeY : 3750
+Plot3d: 0
+YAxisIsTime: 1
+MaxIntervals: 3
+PhasePlot: 0
+PhaseXVariable: -
+XProfileName: -
+YProfileName: -
+VariablesPaths : [ ]
+HistoryVariablesPaths : [ ]
+ProfileNames : [ ]
+UnusedVariablesPaths : [ ]
+UnusedProfileDimensions : [ ]
+PlotInputFile : { 
+Type:0
+Title:plot
+Xlab:Time $UOM
+Ylab:Y Label
+Nvars:0
+MultiY:1
+Subst:UOM
+NYaxes:1
+RunPlot:1
+PhasePlot:0
+SizeToData:0
+CommunicationIntervals:1
+UseVar:1
+IgnoreLegend:0
+TimeWin:10
+TimeScroll:2
+AlwaysShow:0
+PhaseX:
+Var:0
+AxisMap:0
+Label:Time $UOM
+SubstValue:Hours
+Axis:0
+ARange:0 0 0 10 0 10
+ARange3:0 10 0 10 1 1 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:1
+ARange:0 1 0 1 0 1
+ARange3:0 1 0 1 0.25 0.25 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Font:0 10 0:Arial
+Font:1 10 0:Arial
+Font:2 10 0:Arial
+Font:3 10 0:Arial
+Grid:0
+Line:0
+Square:0 0 0 0
+Marker:4 10
+LegendBox:0 1.000000 0.030000
+LegendBox2:90 1.250000 5 } 
+DisplayAs : Plot
+ColumnWidths : [ ]
+ProfileDimensions : [ ]
+}
+  </FORM>
+  <FORM NAME="T1" CLSID="{6BA76840-806B-11D0-BE51-0000C09984EF}">
+    { Version : 1
+SizeX : 7110
+SizeY : 3750
+ShowAllVariables : False
+ShowAllAttributes : False
+ExpandAll : True
+ShowRegistryAttributes : True
+VariablesPaths : [ B1.T ]
+AttributesPaths : [ Value Spec ]
+ColumnWidths : [ 1245 2550 1215 ]
+}
+  </FORM>
+  <FORM NAME="T2" CLSID="{F6AD2450-A109-11D0-8B2F-00A024E1AC0C}">
+    { Version : 2
+SizeX : 5250
+SizeY : 5520
+Plot3d: 0
+YAxisIsTime: 1
+MaxIntervals: 3
+PhasePlot: 0
+PhaseXVariable: -
+XProfileName: -
+YProfileName: -
+VariablesPaths : [ 4 B1.T ]
+HistoryVariablesPaths : [ 4 B1.T ]
+ProfileNames : [ ]
+UnusedVariablesPaths : [ ]
+UnusedProfileDimensions : [ ]
+PlotInputFile : { 
+Type:0
+Title:T2
+Xlab:Time $UOM
+Ylab:Y Label
+Nvars:1
+MultiY:1
+Subst:UOM
+NYaxes:1
+RunPlot:1
+PhasePlot:0
+SizeToData:0
+CommunicationIntervals:1
+UseVar:1
+IgnoreLegend:0
+TimeWin:10
+TimeScroll:2
+AlwaysShow:0
+PhaseX:
+Var:0
+AxisMap:0
+Label:Time $UOM
+SubstValue:Hours
+Var:1
+AxisMap:1
+Label:Y Label
+Legend:B1.T $UOM
+SubstValue:C
+Axis:0
+ARange:0 62.5 0 64 52 62
+ARange3:52 62 52 62 1 1 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:1
+ARange:166.667 266.667 140 280 158.084 266.667
+ARange3:140 280 140 280 25 25 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Attrib:0 4 1 1
+Attrib2:0 0 0 0 0
+Font:0 10 0:Arial
+Font:1 10 0:Arial
+Font:2 10 0:Arial
+Font:3 10 0:Arial
+Grid:0
+Line:0
+Square:0 0 0 0
+Marker:4 10
+LegendBox:0 1.000000 0.030000
+LegendBox2:90 1.250000 5 } 
+DisplayAs : Plot
+ColumnWidths : [ ]
+ProfileDimensions : [ ]
+}
+  </FORM>
+  <FORM NAME="Monit" CLSID="{F6AD2450-A109-11D0-8B2F-00A024E1AC0C}">
+    { Version : 2
+SizeX : 5250
+SizeY : 3750
+Plot3d: 0
+YAxisIsTime: 1
+MaxIntervals: 3
+PhasePlot: 0
+PhaseXVariable: -
+XProfileName: -
+YProfileName: -
+VariablesPaths : [ 5 B1.PH ]
+HistoryVariablesPaths : [ 5 B1.PH ]
+ProfileNames : [ ]
+UnusedVariablesPaths : [ ]
+UnusedProfileDimensions : [ ]
+PlotInputFile : { 
+Type:0
+Title:Monit
+Xlab:Time $UOM
+Ylab:Y Label
+Nvars:1
+MultiY:1
+Subst:UOM
+NYaxes:1
+RunPlot:1
+PhasePlot:0
+SizeToData:0
+CommunicationIntervals:1
+UseVar:1
+IgnoreLegend:0
+TimeWin:0.5
+TimeScroll:0.2
+AlwaysShow:0
+PhaseX:
+Var:0
+AxisMap:0
+Label:Time $UOM
+SubstValue:Hours
+Var:1
+AxisMap:1
+Label:Y Label
+Legend:B1.PH $UOM
+SubstValue:
+Axis:0
+ARange:0 0.045 0 1 0 0.5
+ARange3:0 0.5 0 0.5 0.05 0.05 1
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:1
+ARange:6.92057 6.92238 6 8 6.22852 7.54342
+ARange3:6 8 6 8 0.5 0.5 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Attrib:0 4 1 1
+Attrib2:0 0 0 0 0
+Font:0 10 0:Arial
+Font:1 10 0:Arial
+Font:2 10 0:Arial
+Font:3 10 0:Arial
+Grid:0
+Line:0
+Square:0 0 0 0
+Marker:4 10
+LegendBox:0 1.000000 0.030000
+LegendBox2:90 1.250000 5 } 
+DisplayAs : Plot
+ColumnWidths : [ ]
+ProfileDimensions : [ ]
+}
+  </FORM>
+  <FORM NAME="ca" CLSID="{F6AD2450-A109-11D0-8B2F-00A024E1AC0C}">
+    { Version : 2
+SizeX : 5250
+SizeY : 3750
+Plot3d: 0
+YAxisIsTime: 1
+MaxIntervals: 3
+PhasePlot: 0
+PhaseXVariable: -
+XProfileName: -
+YProfileName: -
+VariablesPaths : [ 9 B1.alpha2 ]
+HistoryVariablesPaths : [ 9 B1.alpha2 ]
+ProfileNames : [ ]
+UnusedVariablesPaths : [ ]
+UnusedProfileDimensions : [ ]
+PlotInputFile : { 
+Type:0
+Title:ca
+Xlab:Time $UOM
+Ylab:Y Label
+Nvars:1
+MultiY:1
+Subst:UOM
+NYaxes:1
+RunPlot:1
+PhasePlot:0
+SizeToData:0
+CommunicationIntervals:1
+UseVar:1
+IgnoreLegend:0
+TimeWin:0.5
+TimeScroll:0.02
+AlwaysShow:0
+PhaseX:
+Var:0
+AxisMap:0
+Label:Time $UOM
+SubstValue:Hours
+Var:1
+AxisMap:1
+Label:Y Label
+Legend:B1.alpha2 $UOM
+SubstValue:kmol/m3
+Axis:0
+ARange:0 0.045 0 10 0 0.5
+ARange3:0 0.5 0 0.5 0.05 0.05 1
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Axis:1
+ARange:0.0434899 0.0434899 0.0375 0.0475 0.0391409 0.047404
+ARange3:0.0375 0.0475 0.0375 0.0475 0.005 0.005 0
+AxisResetRange:1
+AxisScale:0 0
+Multiplier:0
+MultiplierType:0
+AxisFlag:0
+Attrib:0 4 1 1
+Attrib2:0 0 0 0 0
+Font:0 10 0:Arial
+Font:1 10 0:Arial
+Font:2 10 0:Arial
+Font:3 10 0:Arial
+Grid:0
+Line:0
+Square:0 0 0 0
+Marker:4 10
+LegendBox:0 1.000000 0.030000
+LegendBox2:90 1.250000 5 } 
+DisplayAs : Plot
+ColumnWidths : [ ]
+ProfileDimensions : [ ]
+}
+  </FORM>
+  <FORM NAME="AllVariables" MODEL="pH_Tank1">
+    { Version : 1
+SizeX : 8535
+SizeY : 6555
+ShowAllVariables : True
+ShowAllAttributes : False
+ExpandAll : True
+ShowRegistryAttributes : True
+VariablesPaths : [ ]
+AttributesPaths : [ ]
+ColumnWidths : [ ]
+}  </FORM>
+  <FORM NAME="AllVariables" MODEL="pH_Tank2">
+    { Version : 1
+SizeX : 6870
+SizeY : 6600
+ShowAllVariables : True
+ShowAllAttributes : False
+ExpandAll : True
+ShowRegistryAttributes : True
+VariablesPaths : [ ]
+AttributesPaths : [ ]
+ColumnWidths : [ ]
+}  </FORM>
+  <FORM NAME="AllVariables" MODEL="Q1">
+    { Version : 1
+SizeX : 6390
+SizeY : 5340
+ShowAllVariables : True
+ShowAllAttributes : False
+ExpandAll : True
+ShowRegistryAttributes : True
+VariablesPaths : [ ]
+AttributesPaths : [ ]
+ColumnWidths : [ ]
+}
+  </FORM>
+</FORMLIST>
+EndText;
+
+//SYSTEM SECTION END
+  ActiveTasks : [];
+  pH_Tank1.A.spec : Fixed;
+  pH_Tank1.A : 10.;
+  pH_Tank1.ACm_log : -1.364452908577508;
+  pH_Tank1.alpha.derivative : 0.;
+  pH_Tank1.alpha.spec : RateInitial;
+  pH_Tank1.alpha : 4.348993288590605e-002;
+  pH_Tank1.beta.derivative : 0.;
+  pH_Tank1.beta.spec : RateInitial;
+  pH_Tank1.beta : 4.320469798657718e-002;
+  pH_Tank1.cv.spec : Fixed;
+  pH_Tank1.cv : 113.1;
+  pH_Tank1.Feed0.Ca.spec : Fixed;
+  pH_Tank1.Feed0.Cb.spec : Fixed;
+  pH_Tank1.Feed0.F.spec : Fixed;
+  pH_Tank1.Feed0.F : 0.;
+  pH_Tank1.Feed1.Ca : 0.32;
+  pH_Tank1.Feed1.Cb : 0.;
+  pH_Tank1.Feed1.F : 2.46;
+  pH_Tank1.Feed2.Ca : 0.32;
+  pH_Tank1.Feed2.Cb : 0.;
+  pH_Tank1.Feed2.F : 2.4;
+  pH_Tank1.Feed3.Ca : 0.;
+  pH_Tank1.Feed3.Cb : 5.e-002;
+  pH_Tank1.Feed3.F : 30.9;
+  pH_Tank1.h.derivative : 0.;
+  pH_Tank1.h.spec : RateInitial;
+  pH_Tank1.h : 9.997002498253092e-002;
+  pH_Tank1.HAC_log : -3.54307079505588;
+  pH_Tank1.Hp_log : -6.923345381375065;
+  pH_Tank1.OHm_log : -7.076654618624935;
+  pH_Tank1.pH : 6.923345381375065;
+  pH_Tank1.Prod.Ca : 4.348993288590605e-002;
+  pH_Tank1.Prod.Cb : 4.320469798657718e-002;
+  pH_Tank1.Prod.F : 35.76;
+  pH_Tank1.V : 0.9997002498253093;
+  pH_Tank2.A.spec : Fixed;
+  pH_Tank2.A : 10.;
+  pH_Tank2.ACm_log : -1.364452908577508;
+  pH_Tank2.alpha.derivative : 0.;
+  pH_Tank2.alpha.spec : RateInitial;
+  pH_Tank2.alpha : 4.348993288590605e-002;
+  pH_Tank2.beta.derivative : 0.;
+  pH_Tank2.beta.spec : RateInitial;
+  pH_Tank2.beta : 4.320469798657718e-002;
+  pH_Tank2.cv.spec : Fixed;
+  pH_Tank2.cv : 226.2;
+  pH_Tank2.Feed0.Ca : 4.348993288590605e-002;
+  pH_Tank2.Feed0.Cb : 4.320469798657718e-002;
+  pH_Tank2.Feed0.F : 35.76;
+  pH_Tank2.Feed1.Ca : 0.32;
+  pH_Tank2.Feed1.Cb : 0.;
+  pH_Tank2.Feed1.F : 3.;
+  pH_Tank2.Feed2.Ca : 0.32;
+  pH_Tank2.Feed2.Cb : 0.;
+  pH_Tank2.Feed2.F : 1.86;
+  pH_Tank2.Feed3.Ca : 0.;
+  pH_Tank2.Feed3.Cb : 5.e-002;
+  pH_Tank2.Feed3.F : 30.9;
+  pH_Tank2.h.derivative : 0.;
+  pH_Tank2.h.spec : RateInitial;
+  pH_Tank2.h : 9.997002498253092e-002;
+  pH_Tank2.HAC_log : -3.54307079505588;
+  pH_Tank2.Hp_log : -6.923345381375065;
+  pH_Tank2.OHm_log : -7.076654618624935;
+  pH_Tank2.pH : 6.923345381375065;
+  pH_Tank2.Prod.Ca : 4.348993288590605e-002;
+  pH_Tank2.Prod.Cb : 4.320469798657718e-002;
+  pH_Tank2.Prod.F : 71.52;
+  pH_Tank2.V : 0.9997002498253093;
+  Q1.ACm_log : -2.621417353848376;
+  Q1.Ca.Spec : Fixed;
+  Q1.Ca : 0.32;
+  Q1.Cb.Spec : Fixed;
+  Q1.Cb : 0.;
+  Q1.F.Spec : Fixed;
+  Q1.F : 2.46;
+  Q1.HAC_log : -0.4981072218146608;
+  Q1.Hp_log : -2.621417362862978;
+  Q1.In_F.Ca : 0.32;
+  Q1.In_F.Cb : 0.;
+  Q1.In_F.F : 2.46;
+  Q1.OHm_log : -11.37858263713702;
+  Q1.Out_P.Ca : 0.32;
+  Q1.Out_P.Cb : 0.;
+  Q1.Out_P.F : 2.46;
+  Q1.pH : 2.621417362862978;
+  Q2.ACm_log : -2.621417353848376;
+  Q2.Ca.Spec : Fixed;
+  Q2.Ca : 0.32;
+  Q2.Cb.Spec : Fixed;
+  Q2.Cb : 0.;
+  Q2.F.Spec : Fixed;
+  Q2.F : 2.4;
+  Q2.HAC_log : -0.4981072218146608;
+  Q2.Hp_log : -2.621417362862978;
+  Q2.In_F.Ca : 0.32;
+  Q2.In_F.Cb : 0.;
+  Q2.In_F.F : 2.4;
+  Q2.OHm_log : -11.37858263713702;
+  Q2.Out_P.Ca : 0.32;
+  Q2.Out_P.Cb : 0.;
+  Q2.Out_P.F : 2.4;
+  Q2.pH : 2.621417362862978;
+  Q3.ACm_log : -5.16994247500058;
+  Q3.Ca.Spec : Fixed;
+  Q3.Ca : 0.;
+  Q3.Cb.Spec : Fixed;
+  Q3.Cb : 5.e-002;
+  Q3.F.Spec : Fixed;
+  Q3.F : 30.9;
+  Q3.HAC_log : -13.12418498444164;
+  Q3.Hp_log : -12.69897000433776;
+  Q3.In_F.Ca : 0.;
+  Q3.In_F.Cb : 5.e-002;
+  Q3.In_F.F : 30.9;
+  Q3.OHm_log : -1.301029995662244;
+  Q3.Out_P.Ca : 0.;
+  Q3.Out_P.Cb : 5.e-002;
+  Q3.Out_P.F : 30.9;
+  Q3.pH : 12.69897000433776;
+  Q4.ACm_log : -1.364452908577508;
+  Q4.Ca : 4.348993288590605e-002;
+  Q4.Cb : 4.320469798657718e-002;
+  Q4.F : 35.76;
+  Q4.HAC_log : -3.54307079505587;
+  Q4.Hp_log : -6.923345381375055;
+  Q4.In_F.Ca : 4.348993288590605e-002;
+  Q4.In_F.Cb : 4.320469798657718e-002;
+  Q4.In_F.F : 35.76;
+  Q4.OHm_log : -7.076654618624945;
+  Q4.Out_P.Ca : 4.348993288590605e-002;
+  Q4.Out_P.Cb : 4.320469798657718e-002;
+  Q4.Out_P.F : 35.76;
+  Q4.pH : 6.923345381375055;
+  Q5.ACm_log : -2.621417353848376;
+  Q5.Ca.Spec : Fixed;
+  Q5.Ca : 0.32;
+  Q5.Cb.Spec : Fixed;
+  Q5.Cb : 0.;
+  Q5.F.Spec : Fixed;
+  Q5.F : 3.;
+  Q5.HAC_log : -0.4981072218146608;
+  Q5.Hp_log : -2.621417362862978;
+  Q5.In_F.Ca : 0.32;
+  Q5.In_F.Cb : 0.;
+  Q5.In_F.F : 3.;
+  Q5.OHm_log : -11.37858263713702;
+  Q5.Out_P.Ca : 0.32;
+  Q5.Out_P.Cb : 0.;
+  Q5.Out_P.F : 3.;
+  Q5.pH : 2.621417362862978;
+  Q6.ACm_log : -2.621417353848376;
+  Q6.Ca.Spec : Fixed;
+  Q6.Ca : 0.32;
+  Q6.Cb.Spec : Fixed;
+  Q6.Cb : 0.;
+  Q6.F.Spec : Fixed;
+  Q6.F : 1.86;
+  Q6.HAC_log : -0.4981072218146608;
+  Q6.Hp_log : -2.621417362862978;
+  Q6.In_F.Ca : 0.32;
+  Q6.In_F.Cb : 0.;
+  Q6.In_F.F : 1.86;
+  Q6.OHm_log : -11.37858263713702;
+  Q6.Out_P.Ca : 0.32;
+  Q6.Out_P.Cb : 0.;
+  Q6.Out_P.F : 1.86;
+  Q6.pH : 2.621417362862978;
+  Q7.ACm_log : -5.16994247500058;
+  Q7.Ca.Spec : Fixed;
+  Q7.Ca : 0.;
+  Q7.Cb.Spec : Fixed;
+  Q7.Cb : 5.e-002;
+  Q7.F.Spec : Fixed;
+  Q7.F : 30.9;
+  Q7.HAC_log : -13.12418498444164;
+  Q7.Hp_log : -12.69897000433776;
+  Q7.In_F.Ca : 0.;
+  Q7.In_F.Cb : 5.e-002;
+  Q7.In_F.F : 30.9;
+  Q7.OHm_log : -1.301029995662244;
+  Q7.Out_P.Ca : 0.;
+  Q7.Out_P.Cb : 5.e-002;
+  Q7.Out_P.F : 30.9;
+  Q7.pH : 12.69897000433776;
+  Q8.ACm_log : -1.364452908577508;
+  Q8.Ca : 4.348993288590605e-002;
+  Q8.Cb : 4.320469798657718e-002;
+  Q8.F : 71.52;
+  Q8.HAC_log : -3.54307079505587;
+  Q8.Hp_log : -6.923345381375055;
+  Q8.In_F.Ca : 4.348993288590605e-002;
+  Q8.In_F.Cb : 4.320469798657718e-002;
+  Q8.In_F.F : 71.52;
+  Q8.OHm_log : -7.076654618624945;
+  Q8.Out_P.Ca : 4.348993288590605e-002;
+  Q8.Out_P.Cb : 4.320469798657718e-002;
+  Q8.Out_P.F : 71.52;
+  Q8.pH : 6.923345381375055;
+  Graphics : TEXT CLSID {A0DFFFE6-908E-11CE-A964-0000C08C668E}
+# of PFS Objects = 11
+SIZE -3.94259 0.944579 1.02154 4.10563
+BLOCK
+ID: pH_Tank1
+Version: 1
+ICON: "System"
+Flag 0
+Section 
+At -2.409777 2.687334
+Label At 0.000000 0.000000
+Scale 1.000000 Modifier 0
+BLOCK
+ID: pH_Tank2
+Version: 1
+ICON: "System"
+Flag 0
+Section 
+At -0.334782 1.671541
+Label At 0.000000 0.000000
+Scale 1.000000 Modifier 0
+STREAM
+ID: Q1
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 1
+At -3.811879 2.678860
+Label At 0.230939 0.000000
+ROUTE 0 0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -3.811879 2.678860 0
+x x -3.350000 2.678860 0
+y y -3.350000 2.687334 0
+x x -3.109777 2.687334 0
+t l -2.909777 2.687334 0
+$ C 1.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q2
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 1
+At -3.862711 2.264939
+Label At 0.231355 0.000000
+ROUTE 0 0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -3.862711 2.264939 0
+x x -3.400000 2.264939 0
+y y -3.400000 2.366604 0
+x x -3.118681 2.366604 0
+t l -2.918681 2.366604 0
+$ D -0.008904 -0.320730
+$ C 0.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q3
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 1
+At -3.448790 4.022287
+Label At 0.493800 0.000000
+ROUTE 0 0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -3.448790 4.022287 0
+x x -2.461190 4.022287 0
+y y -2.461190 3.546942 0
+t u -2.461190 3.346942 0
+$ D 0.448587 0.659608
+$ C 0.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q4
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 0
+At -1.375000 2.345425
+Label At 0.000000 0.000000
+ROUTE 0 0
+r r -1.375000 2.345425 0
+y x -1.375000 2.687334 0
+x 0 -1.709777 2.687334 0
+t r -1.909777 2.687334 0
+$ C 1.000000 0.0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -1.375000 2.345425 0
+y y -1.375000 2.003515 0
+x x -1.041816 2.003515 0
+t l -0.841816 2.003515 0
+$ D -0.007034 0.331975
+$ C 0.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q5
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 1
+At -1.676919 1.651156
+Label At 0.213459 0.000000
+ROUTE 0 0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -1.676919 1.651156 0
+x x -1.250000 1.651156 0
+y y -1.250000 1.671541 0
+x x -1.034782 1.671541 0
+t l -0.834782 1.671541 0
+$ C 1.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q6
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 1
+At -1.742275 1.222711
+Label At 0.217512 0.000000
+ROUTE 0 0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -1.742275 1.222711 0
+x x -1.300000 1.222711 0
+y y -1.300000 1.338900 0
+x x -1.041816 1.338900 0
+t l -0.841816 1.338900 0
+$ D -0.007034 -0.332641
+$ C 0.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q7
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 1
+At -0.892648 3.176127
+Label At 0.544633 -0.324813
+ROUTE 0 0
+$ $ 0.0 0.0
+ROUTE 1 0
+r r -0.892648 3.176127 0
+x x -0.348015 3.176127 0
+y y -0.348015 2.526500 0
+t u -0.348015 2.326500 0
+$ D 0.486767 0.654959
+$ C 0.000000 0.0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+STREAM
+ID: Q8
+Version: 2
+Flag 0
+TYPE 0 TERMINAL 2
+At 0.944579 1.665679
+Label At -0.197290 0.000000
+ROUTE 0 0
+r l 0.944579 1.665679 0
+x y 0.550000 1.665679 0
+y x 0.550000 1.671541 0
+x 0 0.365218 1.671541 0
+t r 0.165218 1.671541 0
+$ C 1.000000 0.0
+$ $ 0.0 0.0
+ROUTE 1 0
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 1
+$ $ 0.0 0.0
+ROUTE 1 1
+$ $ 0.0 0.0
+At 0.000000 0.000000
+Label At 0.000000 0.000000
+ROUTE 0 2
+$ $ 0.0 0.0
+ROUTE 1 2
+$ $ 0.0 0.0
+LEGEND
+Version: 2
+Dim: -3.84247 -3.2 -3.11475 -3.34494
+Size: 0.00726177
+Font: 1 0 =Times New Roman
+# of PFS Objects = 0
+VIEWPORT -6.266356 3.573339 4.287177 -0.120716
+LAYOUT
+TableFormat 1
+Pages 1 1 1 1
+PAGESETUP
+PAPERSIZE 
+PAPERSOURCE 
+ORIENTATION -1
+PRINTPAGENO 1 1
+LEFTMARGIN 0.5"
+RIGHTMARGIN 0.5"
+TOPMARGIN 0.5"
+BOTTOMMARGIN 0.5"
+VISIBILITY 0.030000
+PFDFLAG 255 255
+PFDMODE 0
+SCALE 0.007262
+
+ENDTEXT;
+END
+
+Properties
+Package : "None";
+End
+
+Options
+  AbsoluteSingularityTol: 1.e-004;
+  AbsPerturb: 1.e-005;
+  AbsTearTol: 1.e-005;
+  AbsTol: 1.e-005;
+  AssignmentWarningsEnabled: True;
+  ChangeTol: 1.e-005;
+  CheckProcDerivs: "Off";
+  Compression: True;
+  CurrentUOMSet: "Metric";
+  Decomposer.ProgID: "AspenTech.Decomposer";
+  Decomposition.MultipleGroup: True;
+  DerivAbsTol: 1.e-003;
+  DerivRelTol: 0.1;
+  EqnTol: 1.e-005;
+  EquationSensCheck: False;
+  EquationSensTol: 10000000000.;
+  EstimationPrintLevel: "Medium";
+  EstimationReturntoBestPoint: False;
+  EstimationSolver: 2;
+  Estimator: 1;
+  ExplicitEventTolerance: 1.e-005;
+  Feasopt.MaxAbsStep: 10.;
+  Feasopt.MaxEval: 100;
+  Feasopt.MaxRelStep: 10.;
+  Feasopt.OptTol: 1.e-004;
+  Homotopy.InitialStep: 0.1;
+  Homotopy.MaximumStep: 1.;
+  Homotopy.MinimumStep: 1.e-002;
+  Homotopy.StepDecrement: 0.5;
+  Homotopy.StepIncrement: 10;
+  Integration.AbsErrorTol: 1.e-005;
+  Integration.AbsTearTol: 1.e-005;
+  Integration.DiscontinuityEventTol: 1.e-005;
+  Integration.EnforceMinStep: False;
+  Integration.IncSensErrors: False;
+  Integration.InitStepSize: 5.e-003;
+  Integration.ItplToComTime: True;
+  Integration.LocateIEvents: False;
+  Integration.MaxOrder: 5;
+  Integration.MaxStepSize: 1.;
+  Integration.MinStepSize: 1.e-004;
+  Integration.ProgID: "AspenTech.UnifiedIntegrator";
+  Integration.RcvTornVars: False;
+  Integration.ReInitAfterEE: False;
+  Integration.ReInitAfterIE: False;
+  Integration.RelErrorTol: 1.e-005;
+  Integration.RelTearTol: 1.e-005;
+  Integration.RewindToLastConvStep: False;
+  Integration.ShowHIErrors: 0;
+  Integration.ShowHTIErrors: 0;
+  Integration.StepRedFact: 0.5;
+  Integration.StepSize: 1.e-002;
+  Integration.StepSizeType: "Variable";
+  Integration.TestSAndAVars: False;
+  Integration.UsePrevAfterEE: False;
+  Integrator: "ImplicitEuler";
+  KeepCompiledEvaluationFiles: False;
+  LinearSolver: "MA48";
+  ListEquivalenceVariables: True;
+  LogLikelihood.MaxIter: 100;
+  LogLikelihood.SolTol: 1.e-004;
+  MA48.DropTol: 0.;
+  MA48.EnableRefineIter: True;
+  MA48.MaxRefineIter: 10;
+  MA48.PivotSearch: 3;
+  MA48.PivotTol: 1.e-050;
+  MA48.Repivot: 0;
+  MA48.UseTranspose: 0;
+  MaxTearIter: 100;
+  Nl2sol.AbsFuncTol: 1.e-020;
+  Nl2sol.FalseConvTol: 0.;
+  Nl2sol.MaxIter: 50;
+  Nl2sol.RelFuncTol: 1.e-004;
+  Nl2sol.SolTol: 1.e-004;
+  NLASolver: "Standard";
+  Nonlinear.AbsPert: 1.e-005;
+  Nonlinear.BestOnFail: True;
+  Nonlinear.BoundClip: 1.e-006;
+  Nonlinear.BoundFrac: 1.;
+  Nonlinear.ConvCrit: "Residual";
+  Nonlinear.CreepIter: 0;
+  Nonlinear.CreepSize: 0.1;
+  Nonlinear.Dogleg: False;
+  Nonlinear.HiResidual: 0;
+  Nonlinear.HiVarSteps: 0;
+  Nonlinear.MathsPrint: 0;
+  Nonlinear.MaxDivSteps: 10;
+  Nonlinear.MaxFastNewtonSteps: 5;
+  Nonlinear.MaxIter: 100;
+  Nonlinear.MaxStepRed: 10;
+  Nonlinear.MaxVarStep: 50.;
+  Nonlinear.Method: "Mixed Newton";
+  Nonlinear.RangeFrac: 0.;
+  Nonlinear.SingPert: 1.e-002;
+  OptimizationObjFun: "Minimize";
+  OptimizationPrintLevel: "Medium";
+  Optimizer: 1;
+  PrintLevel: 2;
+  PropInfo: -1;
+  RelativeSingularityCheck: True;
+  RelativeSingularityTol: 1.e-002;
+  RelPerturb: 1.e-005;
+  RelTearTol: 1.e-005;
+  RelTol: 1.e-005;
+  RunMode: "Dynamic";
+  SaveFreeVariableValues: True;
+  Scaling: False;
+  SensErrorCheck: True;
+  SnapshotSettings.EnableDynInitialization: True;
+  SnapshotSettings.EnableFileSaved: False;
+  SnapshotSettings.EnableInitialization: True;
+  SnapshotSettings.EnableInitialSpec: True;
+  SnapshotSettings.EnableMaximum: True;
+  SnapshotSettings.EnableonReinitialization: False;
+  SnapshotSettings.EnableProblemEdit: True;
+  SnapshotSettings.EnableRegularSnapshot: False;
+  SnapshotSettings.EnableSteadyState: True;
+  SnapshotSettings.Interval: 2.;
+  SnapshotSettings.Maximum: 10;
+  SnapshotSettings.SaveConvergedOnly: True;
+  SnapshotSettings.TakeAutoSnapshots: True;
+  SyncSteps: "Full";
+  Tearing: "update";
+  TearUpdate: "Direct";
+  TimeSettings.CommunicationInterval: 1.e-003;
+  TimeSettings.CommunicationUnits: "Hours";
+  TimeSettings.DisplayUpdateInterval: 2000;
+  TimeSettings.EnablePauseAt: False;
+  TimeSettings.EnableStepFor: False;
+  TimeSettings.PauseAt: 2.;
+  TimeSettings.RealTimeSyncFactor: 0.;
+  TimeSettings.RecordHistory: False;
+  TimeSettings.StepFor: 0;
+  TimeSettings.TimeDisplayUnits: "Hours";
+  UseCompiledEvaluation: False;
+  UseSavedSnapshotOnLoad: False;
+  WatchGroup: 0;
+  WatchSubGroup: 0;
+  Wegstein.MaxAcceleration: 0.;
+  Wegstein.MinAcceleration: -5.;
+  OpenLASolver: "";
+  OpenNLASolver: "";
+  OpenOPTSolver: "";
+  OpenESTSolver: "";
+End
+Optimization
+  IsDynamic : FALSE;
+  ElementSizeBoundsAutomatic : TRUE;
+  EndTime : 1.000000000000000;
+  Control.FinalTime_Initial : 1.000000000000000;
+  Control.FinalTime_Upper : 2.000000000000000;
+  Control.FinalTime_Lower : 0.5000000000000000;
+  Control.FinalTime_IsFixed : TRUE;
+  Control.FinalTime_IsObjective : FALSE;
+  Control.Elements : 5;
+  Control.FixedInterval : TRUE;
+  Control.MovingElementsVarying : FALSE;
+  Control.PiecewiseLinear : FALSE;
+  Control(0) : 0.2000000000000000, 0.05000000000000000, 0.4000000000000000 ;
+  Control(1) : 0.2000000000000000, 0.05000000000000000, 0.4000000000000000 ;
+  Control(2) : 0.2000000000000000, 0.05000000000000000, 0.4000000000000000 ;
+  Control(3) : 0.2000000000000000, 0.05000000000000000, 0.4000000000000000 ;
+  Control(4) : 0.2000000000000000, 0.05000000000000000, 0.4000000000000000 ;
+End
+Estimation
+  CalcHeteroParams : TRUE;
+  ExperimentTimeUnit: "";
+End
+Homotopy
+ Enabled: FALSE;
+End
+SimulationAccessExtension
+  ENABLED: false;
+End
+SpecAnalysis
+ EXCLUDES: {VdV.Feed.Ca},
+         {VdV.Feed.F},
+         {VdV.Prod.Ca},
+         {VdV.Prod.Cb},
+         {VdV.Prod.F};
+End
+OnLineLinks
+  Protocol: "OPC", 1;
+  //Server: "";
+  IO: Synchronous, Cached;
+  Bounds: Clip;
+  Quality: UseLast;
+  Update: 1000;
+  PrintLevel: 2;
+  Enabled: OFF;
+  Input Events : Before SS Run, After DYN Step, After INI Step, Before INI Run;
+  Output Events: After SS Run, After DYN Step, After INI Step, After INI Run;
+End
+snapshot snap1
+// Start of Snapshot Header Information. Please don't modify or move.
+description : "pH_Neut_2Tank_SS1";
+solution_date : "23-08-2014 19:08:18";
+Solution_Time :0 ;
+Solution_Convergence :1 ;
+Run_Number :1 ;
+// End of Snapshot Header Information.
+UserNotes: "";
+ActiveTasks: [];
+WITHIN pH_Tank1
+UserNotes: "";
+A: 10.00000000000000, FIXED, 524416;
+cv: 113.1000000000000, FIXED, 524416;
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+V: 0.9997002498253093, FREE, 34078720;
+h: 0.09997002498253092, FREE, 524288;
+$h: 0.0000000000000000, INITIAL, 0;
+alpha: 0.04348993288590605, FREE, 34078720;
+$alpha: 0.0000000000000000, INITIAL, 0;
+beta: 0.04320469798657718, FREE, 34078720;
+$beta: 0.0000000000000000, INITIAL, 0;
+HAC_log: -3.543070795055880, FREE, 524288;
+ACm_log: -1.364452908577508, FREE, 524288;
+OHm_log: -7.076654618624935, FREE, 524288;
+Hp_log: -6.923345381375065, FREE, 524288;
+pH: 6.923345381375065, FREE, 34078720;
+WITHIN Feed0
+F: 0.0000000000000000, FIXED, 524416;
+Ca: 0.5000000000000000, FIXED, 128;
+Cb: 0.5000000000000000, FIXED, 128;
+ENDWITHIN;
+WITHIN Feed1
+F: 2.460000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+ENDWITHIN;
+WITHIN Feed2
+F: 2.400000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+ENDWITHIN;
+WITHIN Feed3
+F: 30.90000000000000, FIXED, 524416;
+Ca: 0.0000000000000000, FIXED, 524416;
+Cb: 0.05000000000000000, FIXED, 524416;
+ENDWITHIN;
+WITHIN Prod
+F: 35.76000000000000, FREE, 34078720;
+Ca: 0.04348993288590605, FREE, 34078720;
+Cb: 0.04320469798657718, FREE, 34078720;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN pH_Tank2
+UserNotes: "";
+A: 10.00000000000000, FIXED, 524416;
+cv: 226.2000000000000, FIXED, 524416;
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+V: 0.9997002498253093, FREE, 34078720;
+h: 0.09997002498253092, FREE, 524288;
+$h: 0.0000000000000000, INITIAL, 0;
+alpha: 0.04348993288590605, FREE, 34078720;
+$alpha: 0.0000000000000000, INITIAL, 0;
+beta: 0.04320469798657718, FREE, 34078720;
+$beta: 0.0000000000000000, INITIAL, 0;
+HAC_log: -3.543070795055880, FREE, 524288;
+ACm_log: -1.364452908577508, FREE, 524288;
+OHm_log: -7.076654618624935, FREE, 524288;
+Hp_log: -6.923345381375065, FREE, 524288;
+pH: 6.923345381375065, FREE, 34078720;
+WITHIN Feed0
+F: 35.76000000000000, FREE, 34078720;
+Ca: 0.04348993288590605, FREE, 34078720;
+Cb: 0.04320469798657718, FREE, 34078720;
+ENDWITHIN;
+WITHIN Feed1
+F: 3.000000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+ENDWITHIN;
+WITHIN Feed2
+F: 1.860000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+ENDWITHIN;
+WITHIN Feed3
+F: 30.90000000000000, FIXED, 524416;
+Ca: 0.0000000000000000, FIXED, 524416;
+Cb: 0.05000000000000000, FIXED, 524416;
+ENDWITHIN;
+WITHIN Prod
+F: 71.52000000000000, FREE, 34078720;
+Ca: 0.04348993288590605, FREE, 34078720;
+Cb: 0.04320469798657718, FREE, 34078720;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q1
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q2
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q3
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q4
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q5
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q6
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q7
+UserNotes: "";
+ENDWITHIN;
+WITHIN Q8
+UserNotes: "";
+ENDWITHIN;
+End
+snapshot snap2
+// Start of Snapshot Header Information. Please don't modify or move.
+description : "SS1";
+solution_date : "25-08-2014 09:41:39";
+Solution_Time :0 ;
+Solution_Convergence :1 ;
+Run_Number :2 ;
+// End of Snapshot Header Information.
+UserNotes: "";
+ActiveTasks: [];
+WITHIN pH_Tank1
+UserNotes: "";
+A: 10.00000000000000, FIXED, 524416;
+cv: 113.1000000000000, FIXED, 524416;
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+V: 0.9997002498253093, FREE, 34078720;
+h: 0.09997002498253092, FREE, 34078720;
+$h: 0.0000000000000000, INITIAL, 33554432;
+alpha: 0.04348993288590605, FREE, 34078720;
+$alpha: 0.0000000000000000, INITIAL, 33554432;
+beta: 0.04320469798657718, FREE, 34078720;
+$beta: 0.0000000000000000, INITIAL, 33554432;
+HAC_log: -3.543070795055880, FREE, 34078720;
+ACm_log: -1.364452908577508, FREE, 34078720;
+OHm_log: -7.076654618624935, FREE, 34078720;
+Hp_log: -6.923345381375065, FREE, 34078720;
+pH: 6.923345381375065, FREE, 34078720;
+WITHIN Feed0
+F: 0.0000000000000000, FIXED, 524416;
+Ca: 0.5000000000000000, FIXED, 128;
+Cb: 0.5000000000000000, FIXED, 128;
+ENDWITHIN;
+WITHIN Feed1
+F: 2.460000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Feed2
+F: 2.400000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Feed3
+F: 30.90000000000000, FREE, 33554432;
+Ca: 0.0000000000000000, FREE, 33554432;
+Cb: 0.05000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Prod
+F: 35.76000000000000, FREE, 34078720;
+Ca: 0.04348993288590605, FREE, 34078720;
+Cb: 0.04320469798657718, FREE, 34078720;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN pH_Tank2
+UserNotes: "";
+A: 10.00000000000000, FIXED, 524416;
+cv: 226.2000000000000, FIXED, 524416;
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+V: 0.9997002498253093, FREE, 34078720;
+h: 0.09997002498253092, FREE, 34078720;
+$h: 0.0000000000000000, INITIAL, 33554432;
+alpha: 0.04348993288590605, FREE, 34078720;
+$alpha: 0.0000000000000000, INITIAL, 33554432;
+beta: 0.04320469798657718, FREE, 34078720;
+$beta: 0.0000000000000000, INITIAL, 33554432;
+HAC_log: -3.543070795055880, FREE, 34078720;
+ACm_log: -1.364452908577508, FREE, 34078720;
+OHm_log: -7.076654618624935, FREE, 34078720;
+Hp_log: -6.923345381375065, FREE, 34078720;
+pH: 6.923345381375065, FREE, 34078720;
+WITHIN Feed0
+F: 35.76000000000000, FREE, 34078720;
+Ca: 0.04348993288590605, FREE, 34078720;
+Cb: 0.04320469798657718, FREE, 34078720;
+ENDWITHIN;
+WITHIN Feed1
+F: 3.000000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Feed2
+F: 1.860000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Feed3
+F: 30.90000000000000, FREE, 33554432;
+Ca: 0.0000000000000000, FREE, 33554432;
+Cb: 0.05000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Prod
+F: 71.52000000000000, FREE, 34078720;
+Ca: 0.04348993288590605, FREE, 34078720;
+Cb: 0.04320469798657718, FREE, 34078720;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q1
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -0.4981072218146608, FREE, 33554432;
+ACm_log: -2.621417353848376, FREE, 33554432;
+OHm_log: -11.37858263713702, FREE, 33554432;
+Hp_log: -2.621417362862978, FREE, 33554432;
+pH: 2.621417362862978, FREE, 33554432;
+F: 2.460000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+WITHIN In_F
+F: 2.460000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 2.460000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q2
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -0.4981072218146608, FREE, 33554432;
+ACm_log: -2.621417353848376, FREE, 33554432;
+OHm_log: -11.37858263713702, FREE, 33554432;
+Hp_log: -2.621417362862978, FREE, 33554432;
+pH: 2.621417362862978, FREE, 33554432;
+F: 2.400000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+WITHIN In_F
+F: 2.400000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 2.400000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q3
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -13.12418498444164, FREE, 33554432;
+ACm_log: -5.169942475000580, FREE, 33554432;
+OHm_log: -1.301029995662244, FREE, 33554432;
+Hp_log: -12.69897000433776, FREE, 33554432;
+pH: 12.69897000433776, FREE, 33554432;
+F: 30.90000000000000, FIXED, 524416;
+Ca: 0.0000000000000000, FIXED, 524416;
+Cb: 0.05000000000000000, FIXED, 524416;
+WITHIN In_F
+F: 30.90000000000000, FREE, 33554432;
+Ca: 0.0000000000000000, FREE, 33554432;
+Cb: 0.05000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 30.90000000000000, FREE, 33554432;
+Ca: 0.0000000000000000, FREE, 33554432;
+Cb: 0.05000000000000000, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q4
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -3.543070795055870, FREE, 33554432;
+ACm_log: -1.364452908577508, FREE, 33554432;
+OHm_log: -7.076654618624945, FREE, 33554432;
+Hp_log: -6.923345381375055, FREE, 33554432;
+pH: 6.923345381375055, FREE, 33554432;
+F: 35.76000000000000, FREE, 33554432;
+Ca: 0.04348993288590605, FREE, 33554432;
+Cb: 0.04320469798657718, FREE, 33554432;
+WITHIN In_F
+F: 35.76000000000000, FREE, 33554432;
+Ca: 0.04348993288590605, FREE, 33554432;
+Cb: 0.04320469798657718, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 35.76000000000000, FREE, 33554432;
+Ca: 0.04348993288590605, FREE, 33554432;
+Cb: 0.04320469798657718, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q5
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -0.4981072218146608, FREE, 33554432;
+ACm_log: -2.621417353848376, FREE, 33554432;
+OHm_log: -11.37858263713702, FREE, 33554432;
+Hp_log: -2.621417362862978, FREE, 33554432;
+pH: 2.621417362862978, FREE, 33554432;
+F: 3.000000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+WITHIN In_F
+F: 3.000000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 3.000000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q6
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -0.4981072218146608, FREE, 33554432;
+ACm_log: -2.621417353848376, FREE, 33554432;
+OHm_log: -11.37858263713702, FREE, 33554432;
+Hp_log: -2.621417362862978, FREE, 33554432;
+pH: 2.621417362862978, FREE, 33554432;
+F: 1.860000000000000, FIXED, 524416;
+Ca: 0.3200000000000000, FIXED, 524416;
+Cb: 0.0000000000000000, FIXED, 524416;
+WITHIN In_F
+F: 1.860000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 1.860000000000000, FREE, 33554432;
+Ca: 0.3200000000000000, FREE, 33554432;
+Cb: 0.0000000000000000, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q7
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -13.12418498444164, FREE, 33554432;
+ACm_log: -5.169942475000580, FREE, 33554432;
+OHm_log: -1.301029995662244, FREE, 33554432;
+Hp_log: -12.69897000433776, FREE, 33554432;
+pH: 12.69897000433776, FREE, 33554432;
+F: 30.90000000000000, FIXED, 524416;
+Ca: 0.0000000000000000, FIXED, 524416;
+Cb: 0.05000000000000000, FIXED, 524416;
+WITHIN In_F
+F: 30.90000000000000, FREE, 33554432;
+Ca: 0.0000000000000000, FREE, 33554432;
+Cb: 0.05000000000000000, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 30.90000000000000, FREE, 33554432;
+Ca: 0.0000000000000000, FREE, 33554432;
+Cb: 0.05000000000000000, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+WITHIN Q8
+UserNotes: "";
+Ka: 1.800000000000000e-005, FIXED, 128;
+Kw: 1.000000000000000e-014, FIXED, 128;
+HAC_log: -3.543070795055870, FREE, 33554432;
+ACm_log: -1.364452908577508, FREE, 33554432;
+OHm_log: -7.076654618624945, FREE, 33554432;
+Hp_log: -6.923345381375055, FREE, 33554432;
+pH: 6.923345381375055, FREE, 33554432;
+F: 71.52000000000000, FREE, 33554432;
+Ca: 0.04348993288590605, FREE, 33554432;
+Cb: 0.04320469798657718, FREE, 33554432;
+WITHIN In_F
+F: 71.52000000000000, FREE, 33554432;
+Ca: 0.04348993288590605, FREE, 33554432;
+Cb: 0.04320469798657718, FREE, 33554432;
+ENDWITHIN;
+WITHIN Out_P
+F: 71.52000000000000, FREE, 33554432;
+Ca: 0.04348993288590605, FREE, 33554432;
+Cb: 0.04320469798657718, FREE, 33554432;
+ENDWITHIN;
+ENDWITHIN;
+End
+
