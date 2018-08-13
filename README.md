@@ -5,8 +5,8 @@ Unified framework in MATLAB for application and testing of advanced control algo
 See installation and user guide documents in the [documentation](docs) subdirectory.
 
 ## Authors
-* Priyadarshi Mahapatra
-* Stephen Zitney
+* [Priyadarshi Mahapatra](https://github.com/pmahapatra04)
+* [Stephen Zitney](https://github.com/zitney)
 
 See also the list of [contributors](../../contributors) who participated in this project.
 
